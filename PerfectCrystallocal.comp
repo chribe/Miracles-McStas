@@ -754,7 +754,22 @@ MCDISPLAY
    if ( radius )
    {
       z0 = (centerfocus ? 0 : radius);
+      // draw vector to focus point (sphere center)
+      {
+      double fx = 0;
+      double fy = 0;
+      double fz = 0;
 
+      // sphere center in display coordinates
+      // surface is shifted by -z0, so center becomes origin
+      // and crystal midpoint is at -z0
+
+      line(0, 0, -z0, fx, fy, fz);
+
+      circle("xy", fx, fy, fz, 0.02*radius);
+      circle("xz", fx, fy, fz, 0.02*radius);
+      circle("yz", fx, fy, fz, 0.02*radius);
+      }
       // curved surface
       dtt = (ttmax - ttmin) / (double)steps;
       dphi = (phimax - phimin) / (double)steps;

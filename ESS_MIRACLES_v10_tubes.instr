@@ -244,6 +244,10 @@ double CHOP_phase[MAX_CHOPPERS];
   char myfilename_17 [128];
   char myfilename_18 [128];
   char myfilename_19 [128];
+
+  // detector tubes
+  double det_ROT0=11.1;
+  double det_dROT=3.24;
 %}
 
 
@@ -253,6 +257,7 @@ USERVARS
   double n_zheta; // For when condition on analyzers (upper vs lower bank, zheta for z-cylindric coords)
   double t0_SAM; // time recorded at sample position (for Event_broadcaster)
 %}
+
 
 
 //===========================================================================================
@@ -1498,45 +1503,6 @@ when the components in the group are not parallel, this bug is being addressed
 at the moment and will probably be fixed in next McStas release.
 */
 
-/*
-//
-COMPONENT detector_beforAn = Monitor_nD( 
-    yheight  = 5*2*(0.25 + 0.10 + 0.25),  
-    radius   = 2.2,
-    //options  = "banana theta limits=[35,60] bins=50 y limits=[-1.5, 1.5] bins=128, incoming",   // bigger just to explore
-    options  = "banana multiple theta limits=[9,160] bins=50, lambda limits=[5,7], y limits=[-0.5, 0.5] bins=128, outgoing", // realistic case
-    filename = "detector_beforAn",
-    restore_neutron=1.0)
-//WHEN(flag_Mask1==1)
-AT (0, 0, 0) RELATIVE arm_sample
-EXTEND %{
-  // POS-TIME AT END
-  //printf("\n xyztp %f, %f, %f, %f, %f\n", x, y, z, t, p);
-%}
-//
-*/
-
-// CAUTION:
-// with segmentated panels signals of each panel may overlap, adjust borders and sizes
-
-
-// 1st Analyzer Panel (segmentated)
-//
-// segmentated into upper and lower, according to 'n_zheta' flag 
-//
-
-/*
-COMPONENT An1 = Spherical_Backscattering_Analyser(    // 1st Upper Panel 
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2,
-  radius=ANA_CUR, Q   = q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-WHEN ( (n_theta > (ROT1 - 0.5*dROT)) && (n_theta < (ROT1 + 0.5*dROT) )  && (n_zheta == 1) ) // lower flag n_zheta
-AT (0, ANA_ELE*1.0, 0) RELATIVE An1_rot_axis2
-EXTEND %{
-  //printf("\n xyzt, vy, n_theta, at PANEL 1: %f, %f, %f, %f, %f, %f\n", x, y, z, t, vy, n_theta); // 
-  printf("\n angle range for PANEL 1: %f, %f\n", ((ROT1 - 0.5*dROT)),  ((ROT1 + 0.5*dROT)) ); // (35.40, 61.32) deg
- if (!SCATTERED) ABSORB; 
-%}
-*/
 
 COMPONENT An1 = PerfectCrystallocal(
   tau = q_si111,
@@ -1561,24 +1527,30 @@ EXTEND %{
   if (!SCATTERED) ABSORB;
 %}
 
-//
-
-/*
-COMPONENT An11 = Spherical_Backscattering_Analyser(    // 1st Lower Panel
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2,    
-  radius=ANA_CUR, Q   = q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-WHEN ( (n_theta >= (ROT1 - 0.5*dROT)) && (n_theta < (ROT1 + 0.5*dROT) ) && (n_zheta == -1) ) // lower flag n_zheta
+COMPONENT An11 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette,  
+  facette_xi = ANA_Facette_xi,
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+WHEN ((n_theta > (ROT1 - 0.5*dROT)) && (n_theta < (ROT1 + 0.5*dROT)) && (n_zheta == -1))
 AT (0, -ANA_ELE*1.0, 0) RELATIVE An11_rot_axis2
 EXTEND %{
-  //printf("\n xyzt at PANEL 11: %f, %f, %f, %f\n", x, y, z, t); 
+  printf("\nAngle range for PANEL 11: %f – %f deg\n",
+         (ROT1 - 0.5*dROT), (ROT1 + 0.5*dROT));
+  if (!SCATTERED) ABSORB;
 %}
-*/
 
-/*
-COMPONENT An2 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q   = q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-*/
+
 COMPONENT An2 = PerfectCrystallocal(
   tau = q_si111,
   radius = ANA_RAD,
@@ -1594,18 +1566,36 @@ COMPONENT An2 = PerfectCrystallocal(
   sigma=0.24e-3,
   centerfocus=0
 )
-  WHEN (n_theta >= ROT1 - 1.5*dROT && n_theta < ROT1 - 0.5*dROT)
+  WHEN ((n_theta >= ROT1 - 1.5*dROT && n_theta < ROT1 - 0.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An2_rot_axis2
 EXTEND %{
   printf("\n angle range for PANEL 2: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
   if (!SCATTERED) ABSORB; 
 %}
 
-/*
-COMPONENT An3 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q   = q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-*/
+COMPONENT An22 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette, 
+  facette_xi = ANA_Facette_xi, 
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+  WHEN ((n_theta >= ROT1 - 1.5*dROT && n_theta < ROT1 - 0.5*dROT) && (n_zheta == -1))
+  AT (0, -ANA_ELE*1, 0) RELATIVE An22_rot_axis2
+EXTEND %{
+  printf("\n angle range for PANEL 22: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
+  if (!SCATTERED) ABSORB; 
+%}
+
+
 COMPONENT An3 = PerfectCrystallocal(
   tau = q_si111,
   radius = ANA_RAD,
@@ -1621,18 +1611,37 @@ COMPONENT An3 = PerfectCrystallocal(
   sigma=0.24e-3,
   centerfocus=0
 )
-  WHEN (n_theta >= ROT1 + 0.5*dROT && n_theta < ROT1 + 1.5*dROT)
+  WHEN ((n_theta >= ROT1 + 0.5*dROT && n_theta < ROT1 + 1.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An3_rot_axis2
 EXTEND %{
   printf("\n angle range for PANEL 3: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
   if (!SCATTERED) ABSORB; 
 %}
 
-/*
-COMPONENT An4 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q=q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-*/
+
+COMPONENT An33 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette,   
+  facette_xi = ANA_Facette_xi,
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+  WHEN ((n_theta >= ROT1 + 0.5*dROT && n_theta < ROT1 + 1.5*dROT) && (n_zheta == -1))
+  AT (0, -ANA_ELE*1, 0) RELATIVE An33_rot_axis2
+EXTEND %{
+  printf("\n angle range for PANEL 33: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
+  if (!SCATTERED) ABSORB; 
+%}
+
+
 COMPONENT An4 = PerfectCrystallocal(
   tau = q_si111,
   radius = ANA_RAD,
@@ -1648,38 +1657,34 @@ COMPONENT An4 = PerfectCrystallocal(
   sigma=0.24e-3,
   centerfocus=0
 )
-//WHEN ( (n_theta >= (ROT2 - 0.5*dROT)) && (n_theta < (ROT2 + 0.5*dROT) )  )
 WHEN ( (n_theta >= (ROT2 - 0.5*dROT)) && (n_theta < (ROT2 + 0.5*dROT) )  && (n_zheta == 1) ) // nosesne
 AT (0, ANA_ELE*1, 0) RELATIVE An4_rot_axis2
 EXTEND %{
-  //printf("\n xyzt, vy, n_theta, at PANEL 4: %f, %f, %f, %f, %f, %f\n", x, y, z, t, vy, n_theta); // vy mixed! is n_zheta OK?
-  //printf("\n xyzt, vy, n_theta, at PANEL 4: %f, %f, %f, %f, %f, %f\n", x, y, z, t, vy, n_theta); // vy mixed! is n_zheta OK?
-  //printf("\n angle range for PANEL 4: %f, %f\n", (ROT2 - 0.5*dROT), (ROT2 + 0.5*dROT) ); //  (113.42, 139.34) deg
-  //if(SCATTERED){
-  // printf( "\n  \n"  );
-  // printf( "\n  SCATTERED BY PANEL 4!  \n"  );
-  // printf( "\n  \n"  );
   if (!SCATTERED) ABSORB; 
-  //}
 %}
 
-/*
-COMPONENT An44 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q=q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-//WHEN ( (n_theta >= (ROT2 - 0.5*dROT)) && (n_theta < (ROT2 + 0.5*dROT) )  )
-WHEN ( (n_theta >= (ROT2 - 0.5*dROT)) && (n_theta < (ROT2 + 0.5*dROT)) && (n_zheta == -1) ) 
-AT (0, ANA_ELE*1, 0) RELATIVE An44_rot_axis2
+
+COMPONENT An44 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette,  
+  facette_xi = ANA_Facette_xi,
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+WHEN ( (n_theta >= (ROT2 - 0.5*dROT)) && (n_theta < (ROT2 + 0.5*dROT) )  && (n_zheta == -1) ) // nosesne
+AT (0, -ANA_ELE*1, 0) RELATIVE An44_rot_axis2
 EXTEND %{
-
+  if (!SCATTERED) ABSORB; 
 %}
-*/
 
-/*
-COMPONENT An5 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q=q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-*/
 COMPONENT An5 = PerfectCrystallocal(
   tau = q_si111,
   radius = ANA_RAD,
@@ -1695,18 +1700,35 @@ COMPONENT An5 = PerfectCrystallocal(
   sigma=0.24e-3,
   centerfocus=0
 )
-  WHEN (n_theta >= ROT2 - 1.5*dROT && n_theta < ROT2 - 0.5*dROT)
+  WHEN ((n_theta >= ROT2 - 1.5*dROT && n_theta < ROT2 - 0.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An5_rot_axis2
 EXTEND %{
   printf("\n angle range for PANEL 5: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
   if (!SCATTERED) ABSORB; 
 %}
 
-/*
-COMPONENT An6 = Spherical_Backscattering_Analyser(
-  xmin=-APX/2, xmax=APX/2, ymin=-APY/2, ymax=APY/2, 
-  radius=ANA_CUR, Q=q_si111, mosaic=0.0, dspread=DSPREAD, R0=1, debug=0)
-*/
+COMPONENT An55 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette,  
+  facette_xi = ANA_Facette_xi,
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+  WHEN ((n_theta >= ROT2 - 1.5*dROT && n_theta < ROT2 - 0.5*dROT) && (n_zheta == -1))
+  AT (0, -ANA_ELE*1, 0) RELATIVE An55_rot_axis2
+EXTEND %{
+  printf("\n angle range for PANEL 55: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
+  if (!SCATTERED) ABSORB; 
+%}
+
 COMPONENT An6 = PerfectCrystallocal(
   tau = q_si111,
   radius = ANA_RAD,
@@ -1722,10 +1744,32 @@ COMPONENT An6 = PerfectCrystallocal(
   sigma=0.24e-3,
   centerfocus=0
 )
-  WHEN (n_theta >= ROT2 + 0.5*dROT && n_theta < ROT2 + 1.5*dROT)
+  WHEN ((n_theta >= ROT2 + 0.5*dROT && n_theta < ROT2 + 1.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An6_rot_axis2
 EXTEND %{
   printf("\n angle range for PANEL 6: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
+  if (!SCATTERED) ABSORB; 
+%}
+
+COMPONENT An66 = PerfectCrystallocal(
+  tau = q_si111,
+  radius = ANA_RAD,
+  ttmin=-APX/2/ANA_RAD/DEG2RAD,
+  ttmax=APX/2/ANA_RAD/DEG2RAD,
+  phimin=-APY/2/ANA_RAD/DEG2RAD,
+  phimax=APY/2/ANA_RAD/DEG2RAD,
+  facette = ANA_Facette,  
+  facette_xi = ANA_Facette_xi,
+  debyescherrer = 0,          
+  exclusive = 0,              
+  R0 = 1.0,                   
+  sigma=0.24e-3,
+  centerfocus=0
+)
+  WHEN ((n_theta >= ROT2 + 0.5*dROT && n_theta < ROT2 + 1.5*dROT) && (n_zheta == -1))
+  AT (0, -ANA_ELE*1, 0) RELATIVE An66_rot_axis2
+EXTEND %{
+  printf("\n angle range for PANEL 66: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1776,72 +1820,1020 @@ EXTEND %{
 // START> MONITORS BETWEEN ANALYZER AND DETECTOR
 //-------------------------------------------------------------------------
 
-//
-COMPONENT detector_aftAn = Monitor_nD( 
-    //yheight  = 5*2*(0.25 + 0.10 + 0.25),
-    yheight = 2.0,  
-    radius   = 2.0,
-    options  = "banana multiple theta limits=[9,160] bins=180, lambda limits=[4,10] bins=500,time limits=[0.1,0.6], y limits=[-0.5, 0.5] bins=128, incoming", // realistic case
-    filename = "detector_aftAn",
-    restore_neutron=1)
-//WHEN(flag_Mask1==1)
-AT (0, 0, 0) RELATIVE arm_sample
-//EXTEND %{
-  // POS-TIME AT END
-  //printf("\n xyztp %f, %f, %f, %f, %f\n", x, y, z, t, p);
-//%}
-//
 
-// TOFS AS A CYL IN THE PHYSICAL DETs POSITION
-//
-// with respect to the SAMPLE
-// 
-// beware with radii: order is decrecent
-//
-//
-// TOF zoom OUT, OK
-/*
-COMPONENT TOFcyl1 = Monitor_nD(
-    //yheight=5*0.4,radius=1*0.2650,options="auto q, t limits=[0.250000 0.350000] bins=500, incoming",filename="TOFcyl1")
-    yheight=5*0.4,radius=1*0.2650,options="multiple t limits=[0.250000 0.60000] bins=1000, theta limits=[0,180], incoming",filename="TOFcyl1")
-AT (0,0.0,0) RELATIVE arm_sample
-//
 
-// TOF zoom IN (i.e. removing 'auto q')
-COMPONENT TOFcyl1_zoom = Monitor_nD(
-    //yheight=5*0.4,radius=1*0.264,options="t limits=[0.400 0.420] bins=500, incoming",filename="TOFcyl1_zoom")
-    yheight=5*0.4,radius=1*0.264,options="t limits=[0.280 0.300] bins=500, incoming",filename="TOFcyl1_zoom")
-AT (0,0.0,0) RELATIVE arm_sample
-//
-*/
-//
-// Monitor that may mimic the physical 3He tubes detector array
-//
+COMPONENT det1_rot_axis=Arm() 
+AT (0,0,0) RELATIVE Sample
+ROTATED (0,det_ROT0,0) RELATIVE Sample
+COMPONENT det2_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det3_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det4_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det5_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det6_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det7_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det8_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det9_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det10_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det11_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det12_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det13_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det14_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det15_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det16_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det17_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det18_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det19_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det20_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det21_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det22_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det23_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det24_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det25_rot_axis=Arm() 
+AT (0,0,0) RELATIVE Sample
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det26_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det27_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det28_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det29_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det30_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det31_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det32_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det33_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det34_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det35_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det36_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det37_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det38_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det39_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det40_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det41_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det42_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det43_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det44_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det45_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det46_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det47_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
+COMPONENT det48_rot_axis=Arm() 
+AT (0,0,0) RELATIVE PREVIOUS
+ROTATED (0,det_dROT,0) RELATIVE PREVIOUS
 
-COMPONENT detector_outer = Monitor_nD(    // banana
-    yheight  = 5*2*(0.25 + 0.10 + 0.25),  // considering: up + gap + down, rewrite again in: options>>ylimits
-    radius   = 1*0.25,
-    //options  = "banana theta limits=[0,180] bins=50 y limits=[-1.5, 1.5] bins=128, incoming",   // bigger just to explore
-    options  = "banana theta limits=[0,180] bins=50 y limits=[-0.5, 0.5] bins=128, incoming", // realistic case
-    filename = "detector_outer",
+
+COMPONENT detector_tube1 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube1",
     restore_neutron=1.0)
-AT (0, 0, 0) RELATIVE arm_sample
-EXTEND %{
-  // POS-TIME AT END
-  //printf("\n xyztp %f, %f, %f, %f, %f\n", x, y, z, t, p);
-%}
-//
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det1_rot_axis
+ ROTATED (0,0,0) RELATIVE det1_rot_axis
 
-/*
-COMPONENT Mask1_respect_Sample = Slit( // Masking the detector array: a slit with respect to sample (or better, An1_rot_axis)
-  //xmin=-0.05, xmax=0.05, ymin=-0.05, ymax=0.05) // little square
-  xmin=-0.015, xmax=0.015, ymin=-0.85, ymax=0.85) // V-Slit
-  //xmin=-0.55, xmax=0.55, ymin=-0.05, ymax=0.05) // H-Slit, BEWARE its size must fall into the monitor sanzdwich
-AT (0, 0, 0.245) RELATIVE An1_rot_axis //arm_sample
-//ROTATED (0,0,0) RELATIVE An1_rot_axis //arm_sample
-*/
+COMPONENT detector_tube2 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube2",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det2_rot_axis
+ ROTATED (0,0,0) RELATIVE det2_rot_axis
 
-//
+COMPONENT detector_tube3 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube3",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det3_rot_axis
+ ROTATED (0,0,0) RELATIVE det3_rot_axis
+
+COMPONENT detector_tube4 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube4",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det4_rot_axis
+ ROTATED (0,0,0) RELATIVE det4_rot_axis
+
+COMPONENT detector_tube5 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube5",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det5_rot_axis
+ ROTATED (0,0,0) RELATIVE det5_rot_axis
+
+COMPONENT detector_tube6 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube6",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det6_rot_axis
+ ROTATED (0,0,0) RELATIVE det6_rot_axis
+
+COMPONENT detector_tube7 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube7",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det7_rot_axis
+ ROTATED (0,0,0) RELATIVE det7_rot_axis
+
+COMPONENT detector_tube8 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube8",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det8_rot_axis
+ ROTATED (0,0,0) RELATIVE det8_rot_axis
+
+COMPONENT detector_tube9 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube9",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det9_rot_axis
+ ROTATED (0,0,0) RELATIVE det9_rot_axis
+
+COMPONENT detector_tube10 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube10",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det10_rot_axis
+ ROTATED (0,0,0) RELATIVE det10_rot_axis
+
+COMPONENT detector_tube11 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube11",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det11_rot_axis
+ ROTATED (0,0,0) RELATIVE det11_rot_axis
+
+COMPONENT detector_tube12 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube12",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det12_rot_axis
+ ROTATED (0,0,0) RELATIVE det12_rot_axis
+
+COMPONENT detector_tube13 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube13",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det13_rot_axis
+ ROTATED (0,0,0) RELATIVE det13_rot_axis
+
+COMPONENT detector_tube14 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube14",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det14_rot_axis
+ ROTATED (0,0,0) RELATIVE det14_rot_axis
+
+COMPONENT detector_tube15 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube15",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det15_rot_axis
+ ROTATED (0,0,0) RELATIVE det15_rot_axis
+
+COMPONENT detector_tube16 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube16",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det16_rot_axis
+ ROTATED (0,0,0) RELATIVE det16_rot_axis
+
+COMPONENT detector_tube17 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube17",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det17_rot_axis
+ ROTATED (0,0,0) RELATIVE det17_rot_axis
+
+COMPONENT detector_tube18 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube18",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det18_rot_axis
+ ROTATED (0,0,0) RELATIVE det18_rot_axis
+
+COMPONENT detector_tube19 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube19",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det19_rot_axis
+ ROTATED (0,0,0) RELATIVE det19_rot_axis
+
+COMPONENT detector_tube20 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube20",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det20_rot_axis
+ ROTATED (0,0,0) RELATIVE det20_rot_axis
+
+COMPONENT detector_tube21 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube21",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det21_rot_axis
+ ROTATED (0,0,0) RELATIVE det21_rot_axis
+
+COMPONENT detector_tube22 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube22",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det22_rot_axis
+ ROTATED (0,0,0) RELATIVE det22_rot_axis
+
+COMPONENT detector_tube23 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube23",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det23_rot_axis
+ ROTATED (0,0,0) RELATIVE det23_rot_axis
+
+COMPONENT detector_tube24 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube24",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det24_rot_axis
+ ROTATED (0,0,0) RELATIVE det24_rot_axis
+
+COMPONENT detector_tube25 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube25",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det25_rot_axis
+ ROTATED (0,0,0) RELATIVE det25_rot_axis
+
+COMPONENT detector_tube26 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube26",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det26_rot_axis
+ ROTATED (0,0,0) RELATIVE det26_rot_axis
+
+COMPONENT detector_tube27 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube27",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det27_rot_axis
+ ROTATED (0,0,0) RELATIVE det27_rot_axis
+
+COMPONENT detector_tube28 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube28",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det28_rot_axis
+ ROTATED (0,0,0) RELATIVE det28_rot_axis
+
+COMPONENT detector_tube29 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube29",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det29_rot_axis
+ ROTATED (0,0,0) RELATIVE det29_rot_axis
+
+COMPONENT detector_tube30 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube30",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det30_rot_axis
+ ROTATED (0,0,0) RELATIVE det30_rot_axis
+
+COMPONENT detector_tube31 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube31",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det31_rot_axis
+ ROTATED (0,0,0) RELATIVE det31_rot_axis
+
+COMPONENT detector_tube32 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube32",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det32_rot_axis
+ ROTATED (0,0,0) RELATIVE det32_rot_axis
+
+COMPONENT detector_tube33 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube33",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det33_rot_axis
+ ROTATED (0,0,0) RELATIVE det33_rot_axis
+
+COMPONENT detector_tube34 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube34",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det34_rot_axis
+ ROTATED (0,0,0) RELATIVE det34_rot_axis
+
+COMPONENT detector_tube35 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube35",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det35_rot_axis
+ ROTATED (0,0,0) RELATIVE det35_rot_axis
+
+COMPONENT detector_tube36 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube36",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det36_rot_axis
+ ROTATED (0,0,0) RELATIVE det36_rot_axis
+
+COMPONENT detector_tube37 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube37",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det37_rot_axis
+ ROTATED (0,0,0) RELATIVE det37_rot_axis
+
+COMPONENT detector_tube38 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube38",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det38_rot_axis
+ ROTATED (0,0,0) RELATIVE det38_rot_axis
+
+COMPONENT detector_tube39 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube39",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det39_rot_axis
+ ROTATED (0,0,0) RELATIVE det39_rot_axis
+
+COMPONENT detector_tube40 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube40",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det40_rot_axis
+ ROTATED (0,0,0) RELATIVE det40_rot_axis
+
+COMPONENT detector_tube41 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube41",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det41_rot_axis
+ ROTATED (0,0,0) RELATIVE det41_rot_axis
+
+COMPONENT detector_tube42 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube42",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det42_rot_axis
+ ROTATED (0,0,0) RELATIVE det42_rot_axis
+
+COMPONENT detector_tube43 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube43",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det43_rot_axis
+ ROTATED (0,0,0) RELATIVE det43_rot_axis
+
+COMPONENT detector_tube44 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube44",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det44_rot_axis
+ ROTATED (0,0,0) RELATIVE det44_rot_axis
+
+COMPONENT detector_tube45 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube45",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det45_rot_axis
+ ROTATED (0,0,0) RELATIVE det45_rot_axis
+
+COMPONENT detector_tube46 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube46",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det46_rot_axis
+ ROTATED (0,0,0) RELATIVE det46_rot_axis
+
+COMPONENT detector_tube47 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube47",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det47_rot_axis
+ ROTATED (0,0,0) RELATIVE det47_rot_axis
+
+COMPONENT detector_tube48 = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube48",
+    restore_neutron=1.0)
+ AT (0, 0.1+0.15/2, 0.230) RELATIVE det48_rot_axis
+ ROTATED (0,0,0) RELATIVE det48_rot_axis
+
+
+COMPONENT detector_tube1_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube1_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det1_rot_axis
+ ROTATED (0,0,0) RELATIVE det1_rot_axis
+
+COMPONENT detector_tube2_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube2_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det2_rot_axis
+ ROTATED (0,0,0) RELATIVE det2_rot_axis
+
+COMPONENT detector_tube3_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube3_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det3_rot_axis
+ ROTATED (0,0,0) RELATIVE det3_rot_axis
+
+COMPONENT detector_tube4_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube4_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det4_rot_axis
+ ROTATED (0,0,0) RELATIVE det4_rot_axis
+
+COMPONENT detector_tube5_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube5_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det5_rot_axis
+ ROTATED (0,0,0) RELATIVE det5_rot_axis
+
+COMPONENT detector_tube6_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube6_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det6_rot_axis
+ ROTATED (0,0,0) RELATIVE det6_rot_axis
+
+COMPONENT detector_tube7_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube7_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det7_rot_axis
+ ROTATED (0,0,0) RELATIVE det7_rot_axis
+
+COMPONENT detector_tube8_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube8_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det8_rot_axis
+ ROTATED (0,0,0) RELATIVE det8_rot_axis
+
+COMPONENT detector_tube9_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube9_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det9_rot_axis
+ ROTATED (0,0,0) RELATIVE det9_rot_axis
+
+COMPONENT detector_tube10_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube10_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det10_rot_axis
+ ROTATED (0,0,0) RELATIVE det10_rot_axis
+
+COMPONENT detector_tube11_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube11_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det11_rot_axis
+ ROTATED (0,0,0) RELATIVE det11_rot_axis
+
+COMPONENT detector_tube12_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube12_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det12_rot_axis
+ ROTATED (0,0,0) RELATIVE det12_rot_axis
+
+COMPONENT detector_tube13_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube13_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det13_rot_axis
+ ROTATED (0,0,0) RELATIVE det13_rot_axis
+
+COMPONENT detector_tube14_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube14_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det14_rot_axis
+ ROTATED (0,0,0) RELATIVE det14_rot_axis
+
+COMPONENT detector_tube15_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube15_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det15_rot_axis
+ ROTATED (0,0,0) RELATIVE det15_rot_axis
+
+COMPONENT detector_tube16_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube16_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det16_rot_axis
+ ROTATED (0,0,0) RELATIVE det16_rot_axis
+
+COMPONENT detector_tube17_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube17_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det17_rot_axis
+ ROTATED (0,0,0) RELATIVE det17_rot_axis
+
+COMPONENT detector_tube18_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube18_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det18_rot_axis
+ ROTATED (0,0,0) RELATIVE det18_rot_axis
+
+COMPONENT detector_tube19_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube19_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det19_rot_axis
+ ROTATED (0,0,0) RELATIVE det19_rot_axis
+
+COMPONENT detector_tube20_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube20_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det20_rot_axis
+ ROTATED (0,0,0) RELATIVE det20_rot_axis
+
+COMPONENT detector_tube21_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube21_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det21_rot_axis
+ ROTATED (0,0,0) RELATIVE det21_rot_axis
+
+COMPONENT detector_tube22_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube22_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det22_rot_axis
+ ROTATED (0,0,0) RELATIVE det22_rot_axis
+
+COMPONENT detector_tube23_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube23_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det23_rot_axis
+ ROTATED (0,0,0) RELATIVE det23_rot_axis
+
+COMPONENT detector_tube24_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube24_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det24_rot_axis
+ ROTATED (0,0,0) RELATIVE det24_rot_axis
+
+COMPONENT detector_tube25_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube25_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det25_rot_axis
+ ROTATED (0,0,0) RELATIVE det25_rot_axis
+
+COMPONENT detector_tube26_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube26_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det26_rot_axis
+ ROTATED (0,0,0) RELATIVE det26_rot_axis
+
+COMPONENT detector_tube27_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube27_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det27_rot_axis
+ ROTATED (0,0,0) RELATIVE det27_rot_axis
+
+COMPONENT detector_tube28_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube28_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det28_rot_axis
+ ROTATED (0,0,0) RELATIVE det28_rot_axis
+
+COMPONENT detector_tube29_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube29_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det29_rot_axis
+ ROTATED (0,0,0) RELATIVE det29_rot_axis
+
+COMPONENT detector_tube30_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube30_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det30_rot_axis
+ ROTATED (0,0,0) RELATIVE det30_rot_axis
+
+COMPONENT detector_tube31_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube31_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det31_rot_axis
+ ROTATED (0,0,0) RELATIVE det31_rot_axis
+
+COMPONENT detector_tube32_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube32_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det32_rot_axis
+ ROTATED (0,0,0) RELATIVE det32_rot_axis
+
+COMPONENT detector_tube33_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube33_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det33_rot_axis
+ ROTATED (0,0,0) RELATIVE det33_rot_axis
+
+COMPONENT detector_tube34_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube34_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det34_rot_axis
+ ROTATED (0,0,0) RELATIVE det34_rot_axis
+
+COMPONENT detector_tube35_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube35_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det35_rot_axis
+ ROTATED (0,0,0) RELATIVE det35_rot_axis
+
+COMPONENT detector_tube36_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube36_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det36_rot_axis
+ ROTATED (0,0,0) RELATIVE det36_rot_axis
+
+COMPONENT detector_tube37_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube37_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det37_rot_axis
+ ROTATED (0,0,0) RELATIVE det37_rot_axis
+
+COMPONENT detector_tube38_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube38_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det38_rot_axis
+ ROTATED (0,0,0) RELATIVE det38_rot_axis
+
+COMPONENT detector_tube39_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube39_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det39_rot_axis
+ ROTATED (0,0,0) RELATIVE det39_rot_axis
+
+COMPONENT detector_tube40_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube40_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det40_rot_axis
+ ROTATED (0,0,0) RELATIVE det40_rot_axis
+
+COMPONENT detector_tube41_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube41_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det41_rot_axis
+ ROTATED (0,0,0) RELATIVE det41_rot_axis
+
+COMPONENT detector_tube42_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube42_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det42_rot_axis
+ ROTATED (0,0,0) RELATIVE det42_rot_axis
+
+COMPONENT detector_tube43_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube43_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det43_rot_axis
+ ROTATED (0,0,0) RELATIVE det43_rot_axis
+
+COMPONENT detector_tube44_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube44_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det44_rot_axis
+ ROTATED (0,0,0) RELATIVE det44_rot_axis
+
+COMPONENT detector_tube45_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube45_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det45_rot_axis
+ ROTATED (0,0,0) RELATIVE det45_rot_axis
+
+COMPONENT detector_tube46_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube46_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det46_rot_axis
+ ROTATED (0,0,0) RELATIVE det46_rot_axis
+
+COMPONENT detector_tube47_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube47_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det47_rot_axis
+ ROTATED (0,0,0) RELATIVE det47_rot_axis
+
+COMPONENT detector_tube48_b = Monitor_nD( 
+    yheight  = 0.15,
+    radius=0.00635,
+    options  = "cylinder, multiple, lambda limits=[4, 7] bins=100, time limits=[0,5] bins=500000,y limits=[-0.075,0.075] bins 150, incoming, list all neutrons",
+    filename = "tube48_b",
+    restore_neutron=1.0)
+ AT (0, -(0.1+0.15/2), 0.230) RELATIVE det48_rot_axis
+ ROTATED (0,0,0) RELATIVE det48_rot_axis
+
+
 COMPONENT detector_inner = Monitor_nD( 
     //yheight  = 5*2*(0.25 + 0.10 + 0.25),  
     yheight  = 2.0,
@@ -1859,17 +2851,6 @@ EXTEND %{
   // POS-TIME AT END
   //printf("\n xyztp %f, %f, %f, %f, %f\n", x, y, z, t, p);
 %}
-//
-
-
-/*
-// MJC added 'broadcaster' component proof of concept
-COMPONENT event_broadcaster = Event_broadcaster(user1="t0_SAM", ip=sendTo, broadcast=sendPackets)
-// None of the AT ... matters as the broadcaster accepts all events which have made it this far through the instrument.
-AT(0,0,0) RELATIVE arm_sample
-*/
-
-
 //-------------------------------------------------------------------------
 // END> MONITORS BETWEEN ANALYZER AND DETECTOR
 //-------------------------------------------------------------------------
