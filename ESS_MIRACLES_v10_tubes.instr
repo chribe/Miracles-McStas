@@ -1992,7 +1992,7 @@ COMPONENT detector_tube1b = Monitor_nD(
  filename = "tube1b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det1_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det1_rot_axis
  ROTATED (0,0,0) RELATIVE det1_rot_axis
 
 COMPONENT detector_tube2t = Monitor_nD( 
@@ -2012,7 +2012,7 @@ COMPONENT detector_tube2b = Monitor_nD(
  filename = "tube2b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det2_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det2_rot_axis
  ROTATED (0,0,0) RELATIVE det2_rot_axis
 
 COMPONENT detector_tube3t = Monitor_nD( 
@@ -2032,7 +2032,7 @@ COMPONENT detector_tube3b = Monitor_nD(
  filename = "tube3b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det3_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det3_rot_axis
  ROTATED (0,0,0) RELATIVE det3_rot_axis
 
 COMPONENT detector_tube4t = Monitor_nD( 
@@ -2052,7 +2052,7 @@ COMPONENT detector_tube4b = Monitor_nD(
  filename = "tube4b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det4_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det4_rot_axis
  ROTATED (0,0,0) RELATIVE det4_rot_axis
 
 COMPONENT detector_tube5t = Monitor_nD( 
@@ -2072,7 +2072,7 @@ COMPONENT detector_tube5b = Monitor_nD(
  filename = "tube5b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det5_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det5_rot_axis
  ROTATED (0,0,0) RELATIVE det5_rot_axis
 
 COMPONENT detector_tube6t = Monitor_nD( 
@@ -2092,7 +2092,7 @@ COMPONENT detector_tube6b = Monitor_nD(
  filename = "tube6b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det6_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det6_rot_axis
  ROTATED (0,0,0) RELATIVE det6_rot_axis
 
 COMPONENT detector_tube7t = Monitor_nD( 
@@ -2112,7 +2112,7 @@ COMPONENT detector_tube7b = Monitor_nD(
  filename = "tube7b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det7_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det7_rot_axis
  ROTATED (0,0,0) RELATIVE det7_rot_axis
 
 COMPONENT detector_tube8t = Monitor_nD( 
@@ -2132,7 +2132,7 @@ COMPONENT detector_tube8b = Monitor_nD(
  filename = "tube8b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det8_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det8_rot_axis
  ROTATED (0,0,0) RELATIVE det8_rot_axis
 
 COMPONENT detector_tube9t = Monitor_nD( 
@@ -2152,7 +2152,7 @@ COMPONENT detector_tube9b = Monitor_nD(
  filename = "tube9b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det9_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det9_rot_axis
  ROTATED (0,0,0) RELATIVE det9_rot_axis
 
 COMPONENT detector_tube10t = Monitor_nD( 
@@ -2172,7 +2172,7 @@ COMPONENT detector_tube10b = Monitor_nD(
  filename = "tube10b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det10_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det10_rot_axis
  ROTATED (0,0,0) RELATIVE det10_rot_axis
 
 COMPONENT detector_tube11t = Monitor_nD( 
@@ -2192,7 +2192,7 @@ COMPONENT detector_tube11b = Monitor_nD(
  filename = "tube11b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det11_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det11_rot_axis
  ROTATED (0,0,0) RELATIVE det11_rot_axis
 
 COMPONENT detector_tube12t = Monitor_nD( 
@@ -2212,7 +2212,7 @@ COMPONENT detector_tube12b = Monitor_nD(
  filename = "tube12b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det12_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det12_rot_axis
  ROTATED (0,0,0) RELATIVE det12_rot_axis
 
 COMPONENT detector_tube13t = Monitor_nD( 
@@ -2232,7 +2232,7 @@ COMPONENT detector_tube13b = Monitor_nD(
  filename = "tube13b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det13_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det13_rot_axis
  ROTATED (0,0,0) RELATIVE det13_rot_axis
 
 COMPONENT detector_tube14t = Monitor_nD( 
@@ -2252,7 +2252,7 @@ COMPONENT detector_tube14b = Monitor_nD(
  filename = "tube14b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det14_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det14_rot_axis
  ROTATED (0,0,0) RELATIVE det14_rot_axis
 
 COMPONENT detector_tube15t = Monitor_nD( 
@@ -2272,7 +2272,7 @@ COMPONENT detector_tube15b = Monitor_nD(
  filename = "tube15b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det15_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det15_rot_axis
  ROTATED (0,0,0) RELATIVE det15_rot_axis
 
 COMPONENT detector_tube16t = Monitor_nD( 
@@ -2292,7 +2292,7 @@ COMPONENT detector_tube16b = Monitor_nD(
  filename = "tube16b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det16_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det16_rot_axis
  ROTATED (0,0,0) RELATIVE det16_rot_axis
 
 COMPONENT detector_tube17t = Monitor_nD( 
@@ -2312,7 +2312,7 @@ COMPONENT detector_tube17b = Monitor_nD(
  filename = "tube17b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det17_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det17_rot_axis
  ROTATED (0,0,0) RELATIVE det17_rot_axis
 
 COMPONENT detector_tube18t = Monitor_nD( 
@@ -2332,7 +2332,7 @@ COMPONENT detector_tube18b = Monitor_nD(
  filename = "tube18b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det18_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det18_rot_axis
  ROTATED (0,0,0) RELATIVE det18_rot_axis
 
 COMPONENT detector_tube19t = Monitor_nD( 
@@ -2352,7 +2352,7 @@ COMPONENT detector_tube19b = Monitor_nD(
  filename = "tube19b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det19_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det19_rot_axis
  ROTATED (0,0,0) RELATIVE det19_rot_axis
 
 COMPONENT detector_tube20t = Monitor_nD( 
@@ -2372,7 +2372,7 @@ COMPONENT detector_tube20b = Monitor_nD(
  filename = "tube20b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det20_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det20_rot_axis
  ROTATED (0,0,0) RELATIVE det20_rot_axis
 
 COMPONENT detector_tube21t = Monitor_nD( 
@@ -2392,7 +2392,7 @@ COMPONENT detector_tube21b = Monitor_nD(
  filename = "tube21b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det21_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det21_rot_axis
  ROTATED (0,0,0) RELATIVE det21_rot_axis
 
 COMPONENT detector_tube22t = Monitor_nD( 
@@ -2412,7 +2412,7 @@ COMPONENT detector_tube22b = Monitor_nD(
  filename = "tube22b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det22_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det22_rot_axis
  ROTATED (0,0,0) RELATIVE det22_rot_axis
 
 COMPONENT detector_tube23t = Monitor_nD( 
@@ -2432,7 +2432,7 @@ COMPONENT detector_tube23b = Monitor_nD(
  filename = "tube23b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det23_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det23_rot_axis
  ROTATED (0,0,0) RELATIVE det23_rot_axis
 
 COMPONENT detector_tube24t = Monitor_nD( 
@@ -2452,7 +2452,7 @@ COMPONENT detector_tube24b = Monitor_nD(
  filename = "tube24b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det24_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det24_rot_axis
  ROTATED (0,0,0) RELATIVE det24_rot_axis
 
 COMPONENT detector_tube25t = Monitor_nD( 
@@ -2472,7 +2472,7 @@ COMPONENT detector_tube25b = Monitor_nD(
  filename = "tube25b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det25_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det25_rot_axis
  ROTATED (0,0,0) RELATIVE det25_rot_axis
 
 COMPONENT detector_tube26t = Monitor_nD( 
@@ -2492,7 +2492,7 @@ COMPONENT detector_tube26b = Monitor_nD(
  filename = "tube26b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det26_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det26_rot_axis
  ROTATED (0,0,0) RELATIVE det26_rot_axis
 
 COMPONENT detector_tube27t = Monitor_nD( 
@@ -2512,7 +2512,7 @@ COMPONENT detector_tube27b = Monitor_nD(
  filename = "tube27b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det27_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det27_rot_axis
  ROTATED (0,0,0) RELATIVE det27_rot_axis
 
 COMPONENT detector_tube28t = Monitor_nD( 
@@ -2532,7 +2532,7 @@ COMPONENT detector_tube28b = Monitor_nD(
  filename = "tube28b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det28_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det28_rot_axis
  ROTATED (0,0,0) RELATIVE det28_rot_axis
 
 COMPONENT detector_tube29t = Monitor_nD( 
@@ -2552,7 +2552,7 @@ COMPONENT detector_tube29b = Monitor_nD(
  filename = "tube29b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det29_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det29_rot_axis
  ROTATED (0,0,0) RELATIVE det29_rot_axis
 
 COMPONENT detector_tube30t = Monitor_nD( 
@@ -2572,7 +2572,7 @@ COMPONENT detector_tube30b = Monitor_nD(
  filename = "tube30b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det30_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det30_rot_axis
  ROTATED (0,0,0) RELATIVE det30_rot_axis
 
 COMPONENT detector_tube31t = Monitor_nD( 
@@ -2592,7 +2592,7 @@ COMPONENT detector_tube31b = Monitor_nD(
  filename = "tube31b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det31_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det31_rot_axis
  ROTATED (0,0,0) RELATIVE det31_rot_axis
 
 COMPONENT detector_tube32t = Monitor_nD( 
@@ -2612,7 +2612,7 @@ COMPONENT detector_tube32b = Monitor_nD(
  filename = "tube32b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det32_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det32_rot_axis
  ROTATED (0,0,0) RELATIVE det32_rot_axis
 
 COMPONENT detector_tube33t = Monitor_nD( 
@@ -2632,7 +2632,7 @@ COMPONENT detector_tube33b = Monitor_nD(
  filename = "tube33b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det33_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det33_rot_axis
  ROTATED (0,0,0) RELATIVE det33_rot_axis
 
 COMPONENT detector_tube34t = Monitor_nD( 
@@ -2652,7 +2652,7 @@ COMPONENT detector_tube34b = Monitor_nD(
  filename = "tube34b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det34_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det34_rot_axis
  ROTATED (0,0,0) RELATIVE det34_rot_axis
 
 COMPONENT detector_tube35t = Monitor_nD( 
@@ -2672,7 +2672,7 @@ COMPONENT detector_tube35b = Monitor_nD(
  filename = "tube35b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det35_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det35_rot_axis
  ROTATED (0,0,0) RELATIVE det35_rot_axis
 
 COMPONENT detector_tube36t = Monitor_nD( 
@@ -2692,7 +2692,7 @@ COMPONENT detector_tube36b = Monitor_nD(
  filename = "tube36b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det36_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det36_rot_axis
  ROTATED (0,0,0) RELATIVE det36_rot_axis
 
 COMPONENT detector_tube37t = Monitor_nD( 
@@ -2712,7 +2712,7 @@ COMPONENT detector_tube37b = Monitor_nD(
  filename = "tube37b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det37_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det37_rot_axis
  ROTATED (0,0,0) RELATIVE det37_rot_axis
 
 COMPONENT detector_tube38t = Monitor_nD( 
@@ -2732,7 +2732,7 @@ COMPONENT detector_tube38b = Monitor_nD(
  filename = "tube38b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det38_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det38_rot_axis
  ROTATED (0,0,0) RELATIVE det38_rot_axis
 
 COMPONENT detector_tube39t = Monitor_nD( 
@@ -2752,7 +2752,7 @@ COMPONENT detector_tube39b = Monitor_nD(
  filename = "tube39b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det39_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det39_rot_axis
  ROTATED (0,0,0) RELATIVE det39_rot_axis
 
 COMPONENT detector_tube40t = Monitor_nD( 
@@ -2772,7 +2772,7 @@ COMPONENT detector_tube40b = Monitor_nD(
  filename = "tube40b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det40_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det40_rot_axis
  ROTATED (0,0,0) RELATIVE det40_rot_axis
 
 COMPONENT detector_tube41t = Monitor_nD( 
@@ -2792,7 +2792,7 @@ COMPONENT detector_tube41b = Monitor_nD(
  filename = "tube41b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det41_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det41_rot_axis
  ROTATED (0,0,0) RELATIVE det41_rot_axis
 
 COMPONENT detector_tube42t = Monitor_nD( 
@@ -2812,7 +2812,7 @@ COMPONENT detector_tube42b = Monitor_nD(
  filename = "tube42b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det42_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det42_rot_axis
  ROTATED (0,0,0) RELATIVE det42_rot_axis
 
 COMPONENT detector_tube43t = Monitor_nD( 
@@ -2832,7 +2832,7 @@ COMPONENT detector_tube43b = Monitor_nD(
  filename = "tube43b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det43_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det43_rot_axis
  ROTATED (0,0,0) RELATIVE det43_rot_axis
 
 COMPONENT detector_tube44t = Monitor_nD( 
@@ -2852,7 +2852,7 @@ COMPONENT detector_tube44b = Monitor_nD(
  filename = "tube44b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det44_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det44_rot_axis
  ROTATED (0,0,0) RELATIVE det44_rot_axis
 
 COMPONENT detector_tube45t = Monitor_nD( 
@@ -2872,7 +2872,7 @@ COMPONENT detector_tube45b = Monitor_nD(
  filename = "tube45b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det45_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det45_rot_axis
  ROTATED (0,0,0) RELATIVE det45_rot_axis
 
 COMPONENT detector_tube46t = Monitor_nD( 
@@ -2892,7 +2892,7 @@ COMPONENT detector_tube46b = Monitor_nD(
  filename = "tube46b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det46_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det46_rot_axis
  ROTATED (0,0,0) RELATIVE det46_rot_axis
 
 COMPONENT detector_tube47t = Monitor_nD( 
@@ -2912,7 +2912,7 @@ COMPONENT detector_tube47b = Monitor_nD(
  filename = "tube47b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det47_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det47_rot_axis
  ROTATED (0,0,0) RELATIVE det47_rot_axis
 
 COMPONENT detector_tube48t = Monitor_nD( 
@@ -2932,7 +2932,7 @@ COMPONENT detector_tube48b = Monitor_nD(
  filename = "tube48b",
  nexus_bins=-1,
  restore_neutron=1.0)
- AT (0, -1*0.1+0.15/2, 0.230) RELATIVE det48_rot_axis
+ AT (0, -1*(0.1+0.15/2), 0.230) RELATIVE det48_rot_axis
  ROTATED (0,0,0) RELATIVE det48_rot_axis
 
 
