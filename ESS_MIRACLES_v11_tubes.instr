@@ -298,62 +298,78 @@ ANA_ROT = (-atan((APY/2-0.074)/ANA_RAD)) * (180/3.14);
 //ANA_ELE =0;
 //ANA_ROT =0;
 //NOTE: can also remove ANA_ROT from GUI since it is finally defined here
-//===========================================================================================
-// Read chopper configuration file
-//===========================================================================================
-{
-        FILE *f;
-        char line[512];
 
-        f = fopen(chopperfile, "r");
-        if (!f) {
-        fprintf(stderr, "ERROR: Cannot open chopper file %s\n", chopperfile);
-        exit(1);
-        }
-
-        NCHOP = 0;
-        while (fgets(line, sizeof(line), f)) {
-
-        /* Skip empty lines */
-        if (line[0] == '\n')
-                continue;
-
-        /* Skip full-line comments */
-        if (line[0] == '#')
-                continue;
-
-        /* Remove inline comments */
-        char *c = strchr(line, '#');
-        if (c) *c = '\0';
-
-        /* Safety check */
-        if (NCHOP >= MAX_CHOPPERS) {
-                fprintf(stderr, "ERROR: Too many choppers (max %d)\n", MAX_CHOPPERS);
-                exit(1);
-        }
-
-        /* Parse one chopper line */
-        if (sscanf(line,
-                "%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                &CHOP_x[NCHOP],
-                &CHOP_y[NCHOP],
-                &CHOP_z[NCHOP],
-                &CHOP_rad[NCHOP],
-                &CHOP_nu[NCHOP],
-                &CHOP_nslit[NCHOP],
-                &CHOP_theta0[NCHOP],
-                &CHOP_yheight[NCHOP],
-                &CHOP_phase[NCHOP]) == 9) {
-
-                NCHOP++;
-        }
-        }
-
-        fclose(f);
-
-        printf("Loaded %d choppers from %s\n", NCHOP, chopperfile);
+//--------------
+// Define fixed Chopper parameters
+//--------------
+for (int i = 0; i < MAX_CHOPPERS; i++) {
+  CHOP_rad[i]     = 0.35;
+  CHOP_nslit[i]   = 1;
+  CHOP_theta0[i]  = 12;
+  CHOP_yheight[i] = 0.10;
 }
 
+CHOP_theta0[2]=15;
+CHOP_theta0[3]=105;
+CHOP_yheight[3]=0.15;
+
+//===========================================================================================
+// Read chopper frequency/phase configuration file
+//===========================================================================================
+{
+  FILE *f;
+  char line[512];  /* Important: char array, not char *line[512] */
+  char *c;
+
+  f = fopen(chopperfile, "r");
+
+  if (!f) {
+    fprintf(stderr, "ERROR: Cannot open chopper file %s\n", chopperfile);
+    exit(1);
+  }
+
+  NCHOP = 0;
+
+  while (fgets(line, sizeof(line), f)) {
+
+    /* Remove inline comments. This also turns a full-line comment into "". */
+    c = strchr(line, '#');
+    if (c)
+      *c = '\0';
+
+    /* Skip empty or whitespace-only lines. */
+    if (strspn(line, " \t\r\n") == strlen(line))
+      continue;
+
+    /* Safety check. */
+    if (NCHOP >= MAX_CHOPPERS) {
+      fprintf(stderr, "ERROR: Too many choppers (max %d)\n", MAX_CHOPPERS);
+      fclose(f);
+      exit(1);
+    }
+
+    /*
+     * Each line must contain:
+     *
+     *     frequency[Hz]   phase[deg]
+     */
+    if (sscanf(line, "%lf %lf",
+        &CHOP_nu[NCHOP],
+        &CHOP_phase[NCHOP]) == 2) {
+
+      NCHOP++;
+
+    } else {
+      fprintf(stderr,
+        "WARNING: Invalid chopper line ignored: %s\n", line);
+    }
+  }
+
+  fclose(f);
+
+  printf("Loaded %d chopper frequency/phase settings from %s\n",
+    NCHOP, chopperfile);
+}
 //flag_Mask1=0;
 
 %}
@@ -1211,8 +1227,9 @@ COMPONENT arm_guide_sample = Arm()
 //--- sample
 SPLIT 1000
 COMPONENT Sample = Tunneling_sample(
-  thickness = 0,
+  thickness = 0.005,
   radius = 0.015,
+  yheight=0.01,
   f_QE = f_QE,
   f_tun = f_tun,
   gamma = gamma) 
@@ -1530,8 +1547,8 @@ COMPONENT An1 = PerfectCrystallocal(
 WHEN ((n_theta > (ROT1 - 0.5*dROT)) && (n_theta < (ROT1 + 0.5*dROT)) && (n_zheta == 1))
 AT (0, ANA_ELE*1.0, 0) RELATIVE An1_rot_axis2
 EXTEND %{
-  printf("\nAngle range for PANEL 1: %f – %f deg\n",
-         (ROT1 - 0.5*dROT), (ROT1 + 0.5*dROT));
+ //  printf("\nAngle range for PANEL 1: %f – %f deg\n",
+   //      (ROT1 - 0.5*dROT), (ROT1 + 0.5*dROT));
   if (!SCATTERED) ABSORB;
 %}
 
@@ -1553,8 +1570,8 @@ COMPONENT An11 = PerfectCrystallocal(
 WHEN ((n_theta > (ROT1 - 0.5*dROT)) && (n_theta < (ROT1 + 0.5*dROT)) && (n_zheta == -1))
 AT (0, -ANA_ELE*1.0, 0) RELATIVE An11_rot_axis2
 EXTEND %{
-  printf("\nAngle range for PANEL 11: %f – %f deg\n",
-         (ROT1 - 0.5*dROT), (ROT1 + 0.5*dROT));
+ //  printf("\nAngle range for PANEL 11: %f – %f deg\n",
+  //       (ROT1 - 0.5*dROT), (ROT1 + 0.5*dROT));
   if (!SCATTERED) ABSORB;
 %}
 
@@ -1577,7 +1594,7 @@ COMPONENT An2 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT1 - 1.5*dROT && n_theta < ROT1 - 0.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An2_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 2: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
+  // printf("\n angle range for PANEL 2: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1599,7 +1616,7 @@ COMPONENT An22 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT1 - 1.5*dROT && n_theta < ROT1 - 0.5*dROT) && (n_zheta == -1))
   AT (0, -ANA_ELE*1, 0) RELATIVE An22_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 22: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
+  // printf("\n angle range for PANEL 22: %f, %f\n", ((ROT1 - 1.5*dROT)),  ((ROT1 - 0.5*dROT)) ); // (9.48, 35.40) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1622,7 +1639,7 @@ COMPONENT An3 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT1 + 0.5*dROT && n_theta < ROT1 + 1.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An3_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 3: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
+  // printf("\n angle range for PANEL 3: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1645,7 +1662,7 @@ COMPONENT An33 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT1 + 0.5*dROT && n_theta < ROT1 + 1.5*dROT) && (n_zheta == -1))
   AT (0, -ANA_ELE*1, 0) RELATIVE An33_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 33: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
+  // printf("\n angle range for PANEL 33: %f, %f\n", ((ROT1 + 0.5*dROT)),  ((ROT1 + 1.5*dROT)) ); // (61.32, 87.24) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1711,7 +1728,7 @@ COMPONENT An5 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT2 - 1.5*dROT && n_theta < ROT2 - 0.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An5_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 5: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
+  // printf("\n angle range for PANEL 5: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1733,7 +1750,7 @@ COMPONENT An55 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT2 - 1.5*dROT && n_theta < ROT2 - 0.5*dROT) && (n_zheta == -1))
   AT (0, -ANA_ELE*1, 0) RELATIVE An55_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 55: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
+  // printf("\n angle range for PANEL 55: %f, %f\n", ((ROT2 - 1.5*dROT)),  ((ROT2 - 0.5*dROT)) ); // (87.50, 113.42) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1755,7 +1772,7 @@ COMPONENT An6 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT2 + 0.5*dROT && n_theta < ROT2 + 1.5*dROT) && (n_zheta == 1))
   AT (0, ANA_ELE*1, 0) RELATIVE An6_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 6: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
+  // printf("\n angle range for PANEL 6: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -1777,7 +1794,7 @@ COMPONENT An66 = PerfectCrystallocal(
   WHEN ((n_theta >= ROT2 + 0.5*dROT && n_theta < ROT2 + 1.5*dROT) && (n_zheta == -1))
   AT (0, -ANA_ELE*1, 0) RELATIVE An66_rot_axis2
 EXTEND %{
-  printf("\n angle range for PANEL 66: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
+  // printf("\n angle range for PANEL 66: %f, %f\n", ((ROT2 + 0.5*dROT)),  ((ROT2 + 1.5*dROT)) ); // (139.34, 165.26) deg
   if (!SCATTERED) ABSORB; 
 %}
 
@@ -2953,6 +2970,16 @@ EXTEND %{
   // POS-TIME AT END
   //printf("\n xyztp %f, %f, %f, %f, %f\n", x, y, z, t, p);
 %}
+
+//------------------
+// write chopper parameters into the h5 file
+COMPONENT chopper_settings = ChopperSettingsNexus(
+  chopperfile = chopperfile,
+  filename    = "chopper_settings"
+)
+AT (0, 0, 0) ABSOLUTE
+//------------------
+
 //-------------------------------------------------------------------------
 // END> MONITORS BETWEEN ANALYZER AND DETECTOR
 //-------------------------------------------------------------------------

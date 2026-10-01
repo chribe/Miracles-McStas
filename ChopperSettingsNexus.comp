@@ -1,0 +1,175 @@
+/*******************************************************************************
+* ChopperSettingsNexus.comp
+*
+* Read chopper settings from a two-column text file:
+*
+*   frequency_Hz   phase_deg
+*
+* Example input file:
+*
+*   # nu[Hz]   phase[deg]
+*   238        110.95
+*   -238       110.95
+*   14         74.09
+*   14         83.52
+*
+* The output is written as a McStas 2D detector-style dataset. With:
+*
+*   mcrun --format=NeXus ...
+*
+* it is stored in mccode.h5.
+*
+* NeXus table layout:
+*
+*   row    = chopper index
+*   column = 0 : frequency nu [Hz]
+*            1 : phase [deg]
+*
+* Maximum supported number of choppers: 128
+*******************************************************************************/
+
+DEFINE COMPONENT ChopperSettingsNexus
+
+DEFINITION PARAMETERS ()
+
+SETTING PARAMETERS (
+  string chopperfile = 0,
+  string filename = "chopper_settings"
+)
+
+OUTPUT PARAMETERS (
+  NCHOP
+)
+
+DECLARE
+%{
+  /*
+   * Storage for 128 choppers with two values each:
+   *
+   *   index = 2*chopper_number
+   *   index + 0 = frequency
+   *   index + 1 = phase
+   */
+  double cs_counts[256];
+  double cs_values[256];
+  double cs_variances[256];
+%}
+
+INITIALIZE
+%{
+  FILE *f;
+  char line[512];
+  char *comment;
+  int i;
+
+  NCHOP = 0;
+
+  /* Initialise all output arrays. */
+  for (i = 0; i < 256; i++) {
+    cs_counts[i] = 0.0;
+    cs_values[i] = 0.0;
+    cs_variances[i] = 0.0;
+  }
+
+  if (!chopperfile) {
+
+    fprintf(stderr,
+      "WARNING: ChopperSettingsNexus: no chopper file specified.\n");
+
+  } else {
+
+    f = fopen(chopperfile, "r");
+
+    if (!f) {
+      fprintf(stderr,
+        "ERROR: ChopperSettingsNexus: cannot open '%s'\n",
+        chopperfile);
+      exit(1);
+    }
+
+    while (fgets(line, sizeof(line), f)) {
+      double nu;
+      double phase;
+      int index;
+
+      /* Remove full-line and inline comments. */
+      comment = strchr(line, '#');
+      if (comment)
+        *comment = '\0';
+
+      /*
+       * Require two numerical entries:
+       *
+       *   nu[Hz] phase[deg]
+       *
+       * Empty lines and invalid lines are ignored.
+       */
+      if (sscanf(line, "%lf %lf", &nu, &phase) != 2)
+        continue;
+
+      if (NCHOP >= 128) {
+        fprintf(stderr,
+          "ERROR: ChopperSettingsNexus: more than 128 choppers in '%s'.\n",
+          chopperfile);
+        fclose(f);
+        exit(1);
+      }
+
+      /* Two values per chopper. */
+      index = 2*NCHOP;
+
+      cs_values[index + 0] = nu;
+      cs_values[index + 1] = phase;
+
+      /*
+       * Deterministic metadata: mark values as present, with zero variance.
+       */
+      cs_counts[index + 0] = 1.0;
+      cs_counts[index + 1] = 1.0;
+
+      cs_variances[index + 0] = 0.0;
+      cs_variances[index + 1] = 0.0;
+
+      NCHOP++;
+    }
+
+    fclose(f);
+
+    printf("ChopperSettingsNexus: loaded %d chopper settings from %s\n",
+      NCHOP, chopperfile);
+  }
+%}
+
+TRACE
+%{
+  /* Metadata-only component: neutron state remains unchanged. */
+%}
+
+FINALLY
+%{
+  if (NCHOP > 0) {
+
+    /*
+     * Important:
+     *
+     * nx = NCHOP  -> number of rows/choppers
+     * ny = 2      -> frequency and phase columns
+     *
+     * This produces an NCHOP x 2 table in NeXus.
+     */
+    DETECTOR_OUT_2D(
+      "Chopper frequency and phase",
+      "chopper index",
+      "setting index (0=frequency [Hz], 1=phase [deg])",
+      -0.5, NCHOP - 0.5,
+      -0.5, 1.5,
+      NCHOP, 2,
+      cs_counts,
+      cs_values,
+      cs_variances,
+      filename
+    );
+  }
+%}
+
+END
